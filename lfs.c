@@ -1265,7 +1265,7 @@ static int lfs_ctz_traverse(lfs_t *lfs,
 
 /// Top level file operations ///
 int lfs_file_open(lfs_t *lfs, lfs_file_t *file,
-        const char *path, int flags) {
+        const char *path, int flags, void *file_buffer) {
     // deorphan if we haven't yet, needed at most once after poweron
     if ((flags & 3) != LFS_O_RDONLY && !lfs->deorphaned) {
         int err = lfs_deorphan(lfs);
@@ -1323,7 +1323,9 @@ int lfs_file_open(lfs_t *lfs, lfs_file_t *file,
 
     // allocate buffer if needed
     file->cache.block = 0xffffffff;
-    if (lfs->cfg->file_buffer) {
+    if (file_buffer) {
+        file->cache.buffer = file_buffer;
+    } else if (lfs->cfg->file_buffer) {
         if (lfs->files) {
             // already in use
             return LFS_ERR_NOMEM;
